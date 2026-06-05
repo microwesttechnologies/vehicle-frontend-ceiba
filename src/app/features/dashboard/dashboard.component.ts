@@ -7,6 +7,7 @@ import { DetectionsActions } from '../../store/detections/detections.actions';
 import { AlertsActions } from '../../store/alerts/alerts.actions';
 import { selectRecentDetections } from '../../store/detections/detections.selectors';
 import { selectAlerts, selectAlertsCount } from '../../store/alerts/alerts.selectors';
+import { StatsService, DashboardStats } from '../../core/services/stats.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -25,7 +26,7 @@ import { selectAlerts, selectAlertsCount } from '../../store/alerts/alerts.selec
         </div>
         <div class="kpi-content">
           <h3>Detecciones Hoy</h3>
-          <span class="kpi-value">{{ (recentDetections$ | async)?.length || 0 }}</span>
+          <span class="kpi-value">{{ stats?.detectionsToday ?? 0 }}</span>
         </div>
       </div>
 
@@ -45,7 +46,7 @@ import { selectAlerts, selectAlertsCount } from '../../store/alerts/alerts.selec
         </div>
         <div class="kpi-content">
           <h3>Recuperados</h3>
-          <span class="kpi-value">12</span>
+          <span class="kpi-value">{{ stats?.recoveredVehicles ?? 0 }}</span>
         </div>
       </div>
 
@@ -55,7 +56,7 @@ import { selectAlerts, selectAlertsCount } from '../../store/alerts/alerts.selec
         </div>
         <div class="kpi-content">
           <h3>Dispositivos Online</h3>
-          <span class="kpi-value">48</span>
+          <span class="kpi-value">{{ stats?.devicesOnline ?? 0 }}</span>
         </div>
       </div>
     </div>
@@ -136,13 +137,16 @@ import { selectAlerts, selectAlertsCount } from '../../store/alerts/alerts.selec
 })
 export class DashboardComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly statsService = inject(StatsService);
 
   recentDetections$ = this.store.select(selectRecentDetections);
   alerts$ = this.store.select(selectAlerts);
   alertsCount$ = this.store.select(selectAlertsCount);
+  stats: DashboardStats | null = null;
 
   ngOnInit(): void {
     this.store.dispatch(DetectionsActions.loadRecent());
     this.store.dispatch(AlertsActions.loadAlerts());
+    this.statsService.getStats().subscribe(s => this.stats = s);
   }
 }
